@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+    namespace: ips-testing1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Release.Name }}
+          image: harbor.tango.rid-intrasoft.eu/pdp-pep/pdp-pep:latest
+          imagePullPolicy: {{ .Values.peppdp.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.peppdp.containerPort }}
+          env:
+            {{- range .Values.peppdp.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
+          volumeMounts:
+            - name: build-libs
+              mountPath: /app/build/libs
+            - name: crypto
+              mountPath: /app/crypto
+            - name: ec-cakey-jks
+              mountPath: /app/crypto/ec-cakey.jks
+              subPath: ec-cakey.jks
+            - name: server-erat-ks
+              mountPath: /app/crypto/serverErat.ks
+              subPath: serverErat.ks
+            - name: ec-cacert-pem
+              mountPath: /app/crypto/ec-cacert.pem
+              subPath: ec-cacert.pem
+            - name: resources
+              mountPath: /app/resources
+            - name: temperatura
+              mountPath: /app/resources/temperatura
+              subPath:  temperatura
+      imagePullSecrets:
+        - name: harborsecrets1 
+      volumes:
+        - name: build-libs
+          hostPath:
+            path: /home/natalia/git/local_repo/demo/libs
+        - name: crypto
+          emptyDir: {}
+        - name: ec-cakey-jks
+          secret:
+            secretName: ec-cakey-secret
+            items:
+              - key: ec-cakey.jks
+                path: ec-cakey.jks
+        - name: server-erat-ks
+          secret:
+            secretName: server-erat-secret
+            items:
+              - key: serverErat.ks
+                path: serverErat.ks
+        - name: ec-cacert-pem
+          configMap:
+            name: service-config
+            items:
+              - key: ec-cacert.pem
+                path: ec-cacert.pem
+        - name: resources
+          emptyDir: {}
+        - name: temperatura
+          configMap:
+            name: temperatura-config
+            items:
+              - key: temperatura
+                path: temperatura
