@@ -74,7 +74,8 @@ pipeline {
 		 stage("Deployment"){
        	    steps {
                withKubeConfig([credentialsId: 'K8s-config-file', serverUrl: 'https://kubernetes.tango.rid-intrasoft.eu:6443', namespace: 'ips-testing1']) {
-                  
+                    sh 'helm upgrade --install pep-pdp-service ./peppdp-updated --namespace ips-testing1 --values ./peppdp-updated/values.yaml'
+
                     sh 'kubectl get pods -n ${KUBERNETES_NAMESPACE}'
 	    }
             }
