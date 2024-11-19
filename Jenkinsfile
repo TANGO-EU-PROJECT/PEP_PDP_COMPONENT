@@ -32,7 +32,14 @@ pipeline {
                 }
             }
         }
-        
+         stage('Run Tests') {
+            steps {
+                dir('demo') {
+                    echo 'Running Tests...'
+                    sh 'sudo ./gradlew test --tests "com.example.demo.DemoApplicationConnectorToken" -i'
+                }
+            }
+            }
          
 	        stage('Build image') { // build and tag docker image
             steps {
